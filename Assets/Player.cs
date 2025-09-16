@@ -1,13 +1,17 @@
+using System;
 using UnityEngine;
 
 public class Player : MonoBehaviour {
 
     // Components
     private Rigidbody2D rb;
+    private SpriteRenderer sp;
+    private Animator animator;
+    
 
     // Movement
     private float xInput;
-    [SerializeField] private float moveSpeed = 2;
+    [SerializeField] private float moveSpeed = 4;
     [SerializeField] private float jumpForce = 8;
 
     [Header("Collision check")]
@@ -18,14 +22,24 @@ public class Player : MonoBehaviour {
 
     private void Awake() {
         rb = GetComponent<Rigidbody2D>();
+        sp = GetComponentInChildren<SpriteRenderer>();
+        animator = GetComponentInChildren<Animator>();
     }
 
     void Update() {
-
         CollisionChecks();
-        HandleInput();
 
+        HandleInput();
         HandleMovement();
+
+        HandleAnimation();
+    }
+
+    private void HandleAnimation() {
+        bool isRunning = rb.linearVelocityX != 0;
+        animator.SetBool("isRunning", isRunning);
+
+        sp.flipX = rb.linearVelocityX < 0;
     }
 
     private void HandleMovement() {
