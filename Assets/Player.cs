@@ -7,19 +7,18 @@ public class Player : MonoBehaviour {
     private Rigidbody2D rb;
     private SpriteRenderer sp;
     private Animator animator;
-    
 
-    // Movement
+    [Header("Movement parametres")]
     private float xInput;
     [SerializeField] private float moveSpeed = 4;
     [SerializeField] private float jumpForce = 8;
-
+    private bool facingRight = true;
+    
     [Header("Collision check")]
-    [SerializeField] private Transform groundCheck;
-    [SerializeField] private float groundCheckRadius;
+    [SerializeField] private float groundCheckDistance;
     [SerializeField] private LayerMask whatIsGround;
     private bool isGrounded;
-
+    
     private void Awake() {
         rb = GetComponent<Rigidbody2D>();
         sp = GetComponentInChildren<SpriteRenderer>();
@@ -27,10 +26,11 @@ public class Player : MonoBehaviour {
     }
 
     void Update() {
-        CollisionChecks();
+        HandleCollision();
 
         HandleInput();
         HandleMovement();
+        HandleFlip();
 
         HandleAnimation();
     }
@@ -38,8 +38,11 @@ public class Player : MonoBehaviour {
     private void HandleAnimation() {
         bool isRunning = rb.linearVelocityX != 0;
         animator.SetBool("isRunning", isRunning);
+        animator.SetFloat("linearY", rb.linearVelocityY);
+        animator.SetFloat("linearX", xInput);
 
-        sp.flipX = rb.linearVelocityX < 0;
+
+        animator.SetBool("isGrounded", isGrounded);
     }
 
     private void HandleMovement() {
@@ -49,20 +52,34 @@ public class Player : MonoBehaviour {
     private void HandleInput() {
         xInput = Input.GetAxisRaw("Horizontal");
 
-        if (Input.GetKey(KeyCode.Space) && isGrounded) {
+        if (Input.GetKeyDown(KeyCode.Space)) {
             Jump();
         }
     }
 
     private void Jump() {
-        rb.linearVelocity = new Vector2(rb.linearVelocityX, jumpForce);
+        if (isGrounded)
+            rb.linearVelocity = new Vector2(rb.linearVelocityX, jumpForce);
     }
 
-    private void CollisionChecks() {
-        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, whatIsGround);
+    private void HandleFlip() {
+        if (rb.linearVelocityX < 0 && facingRight == true) {
+            Flip();
+        } else if (rb.linearVelocityX > 0 && facingRight == false) {
+            Flip();
+        }
+    }
+
+    private void Flip() {
+        transform.Rotate(0, 180, 0);
+        facingRight = !facingRight;
+    }
+
+    private void HandleCollision() {
+        isGrounded = Physics2D.Raycast(transform.position, Vector2.down, groundCheckDistance, whatIsGround);
     }
 
     private void OnDrawGizmos() {
-        Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
+        Gizmos.DrawLine(transform.position, transform.position + new Vector3(0, -groundCheckDistance));
     }
 }
