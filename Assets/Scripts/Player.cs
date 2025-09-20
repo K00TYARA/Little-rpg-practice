@@ -39,7 +39,7 @@ public class Player : MonoBehaviour {
         bool isRunning = rb.linearVelocityX != 0;
         animator.SetBool("isRunning", isRunning);
         animator.SetFloat("linearY", rb.linearVelocityY);
-        animator.SetFloat("linearX", xInput);
+        animator.SetFloat("linearX", rb.linearVelocityX);
 
 
         animator.SetBool("isGrounded", isGrounded);
