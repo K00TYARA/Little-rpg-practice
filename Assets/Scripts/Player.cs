@@ -1,27 +1,31 @@
-using System;
 using UnityEngine;
 
 public class Player : MonoBehaviour {
 
     // Components
     private Rigidbody2D rb;
-    private SpriteRenderer sp;
     private Animator animator;
+
+    [Header("Attack details")]
+    [SerializeField] private float attackRadius;
+    [SerializeField] private Transform attackPoint;
+    [SerializeField] private LayerMask whatIsEnemy;
 
     [Header("Movement parametres")]
     private float xInput;
     [SerializeField] private float moveSpeed = 4;
     [SerializeField] private float jumpForce = 8;
     private bool facingRight = true;
-    
+    private bool canMove = true;
+    private bool canJump = true;
+
     [Header("Collision check")]
     [SerializeField] private float groundCheckDistance;
     [SerializeField] private LayerMask whatIsGround;
     private bool isGrounded;
-    
+
     private void Awake() {
         rb = GetComponent<Rigidbody2D>();
-        sp = GetComponentInChildren<SpriteRenderer>();
         animator = GetComponentInChildren<Animator>();
     }
 
@@ -35,9 +39,20 @@ public class Player : MonoBehaviour {
         HandleAnimation();
     }
 
+    public void DamageEnemies() {
+        Collider2D[] enemyColliders = Physics2D.OverlapCircleAll(attackPoint.position, attackRadius, whatIsEnemy);
+
+        foreach (Collider2D enemy in enemyColliders) {
+            enemy.GetComponent<Enemy>().TakeDamage();
+        }
+    }
+
+    public void EnableMovementAndJump(bool enable) {
+        canMove = enable;
+        canJump = enable;
+    }
+
     private void HandleAnimation() {
-        bool isRunning = rb.linearVelocityX != 0;
-        animator.SetBool("isRunning", isRunning);
         animator.SetFloat("linearY", rb.linearVelocityY);
         animator.SetFloat("linearX", rb.linearVelocityX);
 
@@ -46,20 +61,34 @@ public class Player : MonoBehaviour {
     }
 
     private void HandleMovement() {
-        rb.linearVelocity = new Vector2(xInput * moveSpeed, rb.linearVelocityY);
+        if (canMove)
+            rb.linearVelocity = new Vector2(xInput * moveSpeed, rb.linearVelocityY);
+        else
+            rb.linearVelocity = new Vector2(0, rb.linearVelocityY);
     }
 
     private void HandleInput() {
         xInput = Input.GetAxisRaw("Horizontal");
 
         if (Input.GetKeyDown(KeyCode.Space)) {
-            Jump();
+            TryToJump();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Mouse0)) {
+            TryToAttack();
         }
     }
 
-    private void Jump() {
-        if (isGrounded)
+    private void TryToJump() {
+        if (isGrounded && canJump)
             rb.linearVelocity = new Vector2(rb.linearVelocityX, jumpForce);
+    }
+
+    private void TryToAttack() {
+        if (isGrounded) { 
+            animator.SetTrigger("attack");
+        }
+
     }
 
     private void HandleFlip() {
@@ -81,5 +110,6 @@ public class Player : MonoBehaviour {
 
     private void OnDrawGizmos() {
         Gizmos.DrawLine(transform.position, transform.position + new Vector3(0, -groundCheckDistance));
+        Gizmos.DrawWireSphere(attackPoint.position, attackRadius);
     }
 }
