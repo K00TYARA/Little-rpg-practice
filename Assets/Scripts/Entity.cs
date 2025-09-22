@@ -1,20 +1,20 @@
+using System;
 using UnityEngine;
 
-public class Player : MonoBehaviour {
+public class Entity : MonoBehaviour {
 
-    // Components
-    private Rigidbody2D rb;
-    private Animator animator;
+    protected Rigidbody2D rb;
+    protected Animator animator;
 
     [Header("Attack details")]
-    [SerializeField] private float attackRadius;
-    [SerializeField] private Transform attackPoint;
-    [SerializeField] private LayerMask whatIsEnemy;
+    [SerializeField] protected float attackRadius;
+    [SerializeField] protected Transform attackPoint;
+    [SerializeField] protected LayerMask whatIsTarget;
 
-    [Header("Movement parametres")]
-    private float xInput;
-    [SerializeField] private float moveSpeed = 4;
-    [SerializeField] private float jumpForce = 8;
+    [Header("Movement details")]
+    [SerializeField] protected float moveSpeed = 4;
+    [SerializeField] protected float jumpForce = 8;
+    protected float xInput;
     private bool facingRight = true;
     private bool canMove = true;
     private bool canJump = true;
@@ -29,7 +29,7 @@ public class Player : MonoBehaviour {
         animator = GetComponentInChildren<Animator>();
     }
 
-    void Update() {
+    protected virtual void Update() {
         HandleCollision();
 
         HandleInput();
@@ -39,12 +39,17 @@ public class Player : MonoBehaviour {
         HandleAnimation();
     }
 
-    public void DamageEnemies() {
-        Collider2D[] enemyColliders = Physics2D.OverlapCircleAll(attackPoint.position, attackRadius, whatIsEnemy);
+    public void DamageTargets() {
+        Collider2D[] enemyColliders = Physics2D.OverlapCircleAll(attackPoint.position, attackRadius, whatIsTarget);
 
         foreach (Collider2D enemy in enemyColliders) {
-            enemy.GetComponent<Enemy>().TakeDamage();
+            Entity entityTarget = enemy.GetComponent<Entity>();
+            entityTarget.TakeDamage();
         }
+    }
+
+    private void TakeDamage() {
+        throw new NotImplementedException();
     }
 
     public void EnableMovementAndJump(bool enable) {
@@ -52,7 +57,7 @@ public class Player : MonoBehaviour {
         canJump = enable;
     }
 
-    private void HandleAnimation() {
+    protected void HandleAnimation() {
         animator.SetFloat("linearY", rb.linearVelocityY);
         animator.SetFloat("linearX", rb.linearVelocityX);
 
@@ -60,7 +65,7 @@ public class Player : MonoBehaviour {
         animator.SetBool("isGrounded", isGrounded);
     }
 
-    private void HandleMovement() {
+    protected virtual void HandleMovement() {
         if (canMove)
             rb.linearVelocity = new Vector2(xInput * moveSpeed, rb.linearVelocityY);
         else
@@ -84,7 +89,7 @@ public class Player : MonoBehaviour {
             rb.linearVelocity = new Vector2(rb.linearVelocityX, jumpForce);
     }
 
-    private void TryToAttack() {
+    protected virtual void TryToAttack() {
         if (isGrounded) { 
             animator.SetTrigger("attack");
         }
@@ -104,7 +109,7 @@ public class Player : MonoBehaviour {
         facingRight = !facingRight;
     }
 
-    private void HandleCollision() {
+    protected virtual void HandleCollision() {
         isGrounded = Physics2D.Raycast(transform.position, Vector2.down, groundCheckDistance, whatIsGround);
     }
 
