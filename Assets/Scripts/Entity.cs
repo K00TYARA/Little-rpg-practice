@@ -14,9 +14,10 @@ public class Entity : MonoBehaviour {
     [Header("Movement details")]
     [SerializeField] protected float moveSpeed = 4;
     [SerializeField] protected float jumpForce = 8;
-    protected float xInput;
+    protected int facingDir = 1;
+    private float xInput;
     private bool facingRight = true;
-    private bool canMove = true;
+    protected bool canMove = true;
     private bool canJump = true;
 
     [Header("Collision check")]
@@ -57,9 +58,9 @@ public class Entity : MonoBehaviour {
         canJump = enable;
     }
 
-    protected void HandleAnimation() {
-        animator.SetFloat("linearY", rb.linearVelocityY);
-        animator.SetFloat("linearX", rb.linearVelocityX);
+    protected virtual void HandleAnimation() {
+        animator.SetFloat("xVelocity", rb.linearVelocityY);
+        animator.SetFloat("yVelocity", rb.linearVelocityX);
 
 
         animator.SetBool("isGrounded", isGrounded);
@@ -90,13 +91,11 @@ public class Entity : MonoBehaviour {
     }
 
     protected virtual void TryToAttack() {
-        if (isGrounded) { 
+        if (isGrounded) {
             animator.SetTrigger("attack");
         }
-
     }
-
-    private void HandleFlip() {
+    protected void HandleFlip() {
         if (rb.linearVelocityX < 0 && facingRight == true) {
             Flip();
         } else if (rb.linearVelocityX > 0 && facingRight == false) {
@@ -107,6 +106,7 @@ public class Entity : MonoBehaviour {
     private void Flip() {
         transform.Rotate(0, 180, 0);
         facingRight = !facingRight;
+        facingDir *= -1;
     }
 
     protected virtual void HandleCollision() {

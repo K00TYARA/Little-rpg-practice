@@ -24,7 +24,7 @@ BlendTree:
     m_CycleOffset: 0
     m_DirectBlendParameter: linearY
     m_Mirror: 0
-  m_BlendParameter: linearY
+  m_BlendParameter: yVelocity
   m_BlendParameterY: Blend
   m_MinThreshold: -12
   m_MaxThreshold: 12
@@ -99,13 +99,13 @@ AnimatorController:
     m_DefaultInt: 0
     m_DefaultBool: 0
     m_Controller: {fileID: 9100000}
-  - m_Name: linearY
+  - m_Name: yVelocity
     m_Type: 1
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
     m_Controller: {fileID: 9100000}
-  - m_Name: linearX
+  - m_Name: xVelocity
     m_Type: 1
     m_DefaultFloat: 0
     m_DefaultInt: 0
@@ -162,7 +162,7 @@ BlendTree:
     m_CycleOffset: 0
     m_DirectBlendParameter: linearY
     m_Mirror: 0
-  m_BlendParameter: linearX
+  m_BlendParameter: xVelocity
   m_BlendParameterY: linearY
   m_MinThreshold: -1
   m_MaxThreshold: 1
