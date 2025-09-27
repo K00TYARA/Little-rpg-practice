@@ -50,7 +50,7 @@ public class Entity : MonoBehaviour {
     }
 
     private void TakeDamage() {
-        throw new NotImplementedException();
+        //throw new NotImplementedException();
     }
 
     public void EnableMovementAndJump(bool enable) {
@@ -59,8 +59,8 @@ public class Entity : MonoBehaviour {
     }
 
     protected virtual void HandleAnimation() {
-        animator.SetFloat("xVelocity", rb.linearVelocityY);
-        animator.SetFloat("yVelocity", rb.linearVelocityX);
+        animator.SetFloat("yVelocity", rb.linearVelocityY);
+        animator.SetFloat("xVelocity", rb.linearVelocityX);
 
 
         animator.SetBool("isGrounded", isGrounded);
@@ -81,7 +81,7 @@ public class Entity : MonoBehaviour {
         }
 
         if (Input.GetKeyDown(KeyCode.Mouse0)) {
-            TryToAttack();
+            HandleAttack();
         }
     }
 
@@ -90,7 +90,7 @@ public class Entity : MonoBehaviour {
             rb.linearVelocity = new Vector2(rb.linearVelocityX, jumpForce);
     }
 
-    protected virtual void TryToAttack() {
+    protected virtual void HandleAttack() {
         if (isGrounded) {
             animator.SetTrigger("attack");
         }

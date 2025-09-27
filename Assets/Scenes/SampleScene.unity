@@ -130,6 +130,7 @@ GameObject:
   - component: {fileID: 71589796}
   - component: {fileID: 71589798}
   - component: {fileID: 71589797}
+  - component: {fileID: 71589799}
   m_Layer: 0
   m_Name: Animator
   m_TagString: Untagged
@@ -229,6 +230,18 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &71589799
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 71589795}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a17e7de9836e894aadcd414d5ef8ebb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &234084917
 GameObject:
   m_ObjectHideFlags: 0
@@ -257,7 +270,7 @@ Transform:
   m_GameObject: {fileID: 234084917}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -10.74, y: -2.92, z: -0.0112444}
+  m_LocalPosition: {x: -9.413, y: -3.024, z: -0.0112444}
   m_LocalScale: {x: 1.1236997, y: 1.1236997, z: 1.1236997}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -349,8 +362,8 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.024465442, y: 0.09624856}
-  m_Size: {x: 1.1166034, y: 1.5639842}
+  m_Offset: {x: 0.024465442, y: 0.114261664}
+  m_Size: {x: 1.1166034, y: 1.5279578}
   m_Direction: 0
 --- !u!1 &519420028
 GameObject:
@@ -763,7 +776,7 @@ Transform:
   m_GameObject: {fileID: 1038649312}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.81, y: -0.02, z: 0}
+  m_LocalPosition: {x: 0.95, y: 0.12, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1032,8 +1045,8 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: -0.3}
-  m_Size: {x: 0.7885957, y: 1.8669822}
+  m_Offset: {x: 0, y: -0.28576946}
+  m_Size: {x: 0.7885957, y: 1.838521}
   m_Direction: 0
 --- !u!4 &1913502462
 Transform:
@@ -1067,7 +1080,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDamping: 0.5
   m_AngularDamping: 0.05
-  m_GravityScale: 3.5
+  m_GravityScale: 2.5
   m_Material: {fileID: 6200000, guid: e2578a0fc5281f4469123eadf187a9ca, type: 2}
   m_IncludeLayers:
     serializedVersion: 2

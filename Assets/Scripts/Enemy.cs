@@ -4,11 +4,14 @@ using UnityEngine.Windows;
 
 public class Enemy : Entity {
 
+    private bool PlayerDetected;
+
     protected override void Update() {
         HandleCollision();
         HandleAnimation();
         HandleMovement();
         HandleFlip();
+        HandleAttack();
     }
 
     protected override void HandleMovement() {
@@ -18,8 +21,18 @@ public class Enemy : Entity {
             rb.linearVelocity = new Vector2(0, rb.linearVelocityY);
     }
 
+    protected override void HandleAttack() {
+        if (PlayerDetected)
+            animator.SetTrigger("attack");
+    }
+
     protected override void HandleAnimation() {
-        animator.SetFloat("xVelocity", rb.linearVelocityY);
+        animator.SetFloat("xVelocity", rb.linearVelocityX);
+    }
+
+    protected override void HandleCollision() {
+        base.HandleCollision();
+        PlayerDetected = Physics2D.OverlapCircle(attackPoint.position, attackRadius, whatIsTarget);
     }
 
 }
