@@ -1,15 +1,26 @@
-using System;
+using System.Collections;
+using System.Linq;
 using UnityEngine;
 
 public class Entity : MonoBehaviour {
 
     protected Rigidbody2D rb;
+    protected SpriteRenderer sr;
     protected Animator animator;
+    protected Collider2D col;
+
+    [Header("Health")]
+    [SerializeField] private int maxHealth = 1;
+    [SerializeField] private int currentHealth;
 
     [Header("Attack details")]
     [SerializeField] protected float attackRadius;
     [SerializeField] protected Transform attackPoint;
     [SerializeField] protected LayerMask whatIsTarget;
+
+    // Die
+    private float fadeDuration = 1f;
+    private bool isDie = false;
 
     [Header("Movement details")]
     [SerializeField] protected float moveSpeed = 4;
@@ -27,7 +38,10 @@ public class Entity : MonoBehaviour {
 
     private void Awake() {
         rb = GetComponent<Rigidbody2D>();
+        col = GetComponent<Collider2D>();
+        sr = GetComponentInChildren<SpriteRenderer>();
         animator = GetComponentInChildren<Animator>();
+        currentHealth = maxHealth;
     }
 
     protected virtual void Update() {
@@ -50,7 +64,56 @@ public class Entity : MonoBehaviour {
     }
 
     private void TakeDamage() {
-        //throw new NotImplementedException();
+        currentHealth -= 1;
+        if (currentHealth <= 0)
+            Die();
+    }
+
+    protected virtual void Die() {
+        animator.SetTrigger("die");
+
+        if (!isDie) {
+            rb.gravityScale = 8;
+            rb.linearVelocity = new Vector2(rb.linearVelocityX, 15);
+            isDie = true;
+        }
+    }
+
+    public void DisableAnimationAndDestroyEntity() {
+        animator.enabled = false;
+        StartCoroutine(FadeOut());
+    }
+
+    private IEnumerator FadeOut() {
+        Color startColor = sr.color;
+        float elapsed = 0f;
+
+        while (elapsed < fadeDuration) {
+            elapsed += Time.deltaTime;
+            float alpha = Mathf.Lerp(1f, 0f, elapsed / fadeDuration);
+            sr.color = new Color(startColor.r, startColor.g, startColor.b, alpha);
+            yield return null;
+        }
+
+        Destroy(gameObject);
+    }
+
+    public void PlayerDieStopMove() {
+        int enemyLayer = LayerMask.NameToLayer("Enemy");
+
+        Collider2D[] all = Object.FindObjectsByType<Collider2D>(FindObjectsSortMode.None);
+
+        Collider2D[] enemies = all
+            .Where(c => c.gameObject.layer == enemyLayer)
+            .ToArray();
+
+        foreach (Collider2D enemy in enemies) {
+            animator.SetTrigger("playerDie");
+            Transform attackPoint = enemy.transform.Find("AttackPoint");
+            if (attackPoint != null) {
+                Destroy(attackPoint.gameObject);
+            }
+        }
     }
 
     public void EnableMovementAndJump(bool enable) {

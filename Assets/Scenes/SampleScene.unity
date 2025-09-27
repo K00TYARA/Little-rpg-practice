@@ -290,6 +290,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b9c1f4fd6fd97654896581b25d905e60, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  maxHealth: 1
+  currentHealth: 0
   attackRadius: 0.75
   attackPoint: {fileID: 1038649313}
   whatIsTarget:
@@ -1104,6 +1106,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7398c374013cae24ba822e5c58d8a2e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  maxHealth: 2
+  currentHealth: 0
   attackRadius: 0.75
   attackPoint: {fileID: 599881485}
   whatIsTarget:
