@@ -8,6 +8,7 @@ public class Entity : MonoBehaviour {
     protected SpriteRenderer sr;
     protected Animator animator;
     protected Collider2D col;
+    protected bool isPlayer;
 
     [Header("Health")]
     [SerializeField] private int maxHealth = 1;
@@ -30,18 +31,20 @@ public class Entity : MonoBehaviour {
     private bool facingRight = true;
     protected bool canMove = true;
     private bool canJump = true;
+    protected bool canAttack = true;
 
     [Header("Collision check")]
     [SerializeField] private float groundCheckDistance;
     [SerializeField] private LayerMask whatIsGround;
     private bool isGrounded;
 
-    private void Awake() {
+    protected virtual void Awake() {
         rb = GetComponent<Rigidbody2D>();
         col = GetComponent<Collider2D>();
         sr = GetComponentInChildren<SpriteRenderer>();
         animator = GetComponentInChildren<Animator>();
         currentHealth = maxHealth;
+        isPlayer = true;
     }
 
     protected virtual void Update() {
@@ -81,7 +84,8 @@ public class Entity : MonoBehaviour {
 
     public void DisableAnimationAndDestroyEntity() {
         animator.enabled = false;
-        StartCoroutine(FadeOut());
+        if (!isPlayer)
+            StartCoroutine(FadeOut());
     }
 
     private IEnumerator FadeOut() {
@@ -104,19 +108,18 @@ public class Entity : MonoBehaviour {
         Collider2D[] all = Object.FindObjectsByType<Collider2D>(FindObjectsSortMode.None);
 
         Collider2D[] enemies = all
-            .Where(c => c.gameObject.layer == enemyLayer)
+            .Where(en => en.gameObject.layer == enemyLayer)
             .ToArray();
 
         foreach (Collider2D enemy in enemies) {
-            animator.SetTrigger("playerDie");
-            Transform attackPoint = enemy.transform.Find("AttackPoint");
-            if (attackPoint != null) {
-                Destroy(attackPoint.gameObject);
-            }
+            Enemy enemyScript = enemy.GetComponent<Enemy>();
+            enemyScript.canAttack = false;
+            enemyScript.canMove = false;
         }
     }
 
     public void EnableMovementAndJump(bool enable) {
+        if (!canAttack) return;
         canMove = enable;
         canJump = enable;
     }

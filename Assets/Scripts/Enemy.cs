@@ -6,6 +6,11 @@ public class Enemy : Entity {
 
     private bool PlayerDetected;
 
+    protected override void Awake() {
+        base.Awake();
+        isPlayer = false;
+    }
+
     protected override void Update() {
         HandleCollision();
         HandleAnimation();
@@ -22,7 +27,7 @@ public class Enemy : Entity {
     }
 
     protected override void HandleAttack() {
-        if (PlayerDetected)
+        if (PlayerDetected && canAttack)
             animator.SetTrigger("attack");
     }
 
