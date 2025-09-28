@@ -13,15 +13,20 @@ public class Entity : MonoBehaviour {
     [Header("Health")]
     [SerializeField] private int maxHealth = 1;
     [SerializeField] private int currentHealth;
+    //[SerializeField] private Material damageMaterial;
+    //[SerializeField] private float damageFeedbackDuration = .2f;
+    //private Coroutine damageFeedbackCoroutine;
 
     [Header("Attack details")]
     [SerializeField] protected float attackRadius;
     [SerializeField] protected Transform attackPoint;
     [SerializeField] protected LayerMask whatIsTarget;
+    protected float currGravityScale;
 
-    // Die
+    // Die or Hit
     private float fadeDuration = 1f;
     protected bool isDie = false;
+    protected bool isHit = false;
 
     [Header("Movement details")]
     [SerializeField] protected float moveSpeed = 4;
@@ -36,7 +41,7 @@ public class Entity : MonoBehaviour {
     [Header("Collision check")]
     [SerializeField] private float groundCheckDistance;
     [SerializeField] private LayerMask whatIsGround;
-    private bool isGrounded;
+    [SerializeField] protected bool isGrounded;
 
     protected virtual void Awake() {
         rb = GetComponent<Rigidbody2D>();
@@ -45,10 +50,11 @@ public class Entity : MonoBehaviour {
         animator = GetComponentInChildren<Animator>();
         currentHealth = maxHealth;
         isPlayer = true;
+        currGravityScale = rb.gravityScale;
     }
 
     protected virtual void Update() {
-        if (isDie) return;
+        if (isDie || isHit) return;
         HandleCollision();
 
         HandleInput();
@@ -69,25 +75,57 @@ public class Entity : MonoBehaviour {
 
     private void TakeDamage() {
         currentHealth -= 1;
+        //PlayDamageFeedback();
+        isHit = true;
+
         if (currentHealth <= 0)
             Die();
+        else
+            Hit();
     }
 
-    protected virtual void Die() {
+
+    //private void PlayDamageFeedback() {
+    //    if (damageFeedbackCoroutine != null)
+    //        StopCoroutine(damageFeedbackCoroutine);
+    //    StartCoroutine(DamageFeedbackCo());
+    //}
+
+    //private IEnumerator DamageFeedbackCo() {
+    //    Material originalMat = sr.material;
+    //    sr.material = damageMaterial;
+    //    Bounced();
+
+    //    yield return new WaitForSeconds(damageFeedbackDuration);
+
+    //    sr.material = originalMat;
+    //}
+
+    protected void Die() {
         animator.SetTrigger("die");
         canMove = false;
         canAttack = false;
 
         if (!isDie) {
             isDie = true;
-            rb.gravityScale = 8;
-
-            float knockBackX = -facingDir * 3f;
-            float knockBackY = 15f;
-
-            rb.linearVelocity = new Vector2(knockBackX, knockBackY);
-            
+            Bounced();
         }
+    }
+
+    protected void Hit() {
+        animator.SetTrigger("hit");
+        canMove = false;
+
+        Bounced();
+    }
+
+    private void Bounced() {
+        rb.gravityScale = 8;
+
+        float knockBackX = -facingDir * 3f;
+        float knockBackY = 15f;
+
+        rb.linearVelocity = new Vector2(knockBackX, knockBackY);
     }
 
     public void DisableAnimationAndDestroyEntity() {
@@ -130,6 +168,7 @@ public class Entity : MonoBehaviour {
         if (!canAttack) return;
         canMove = enable;
         canJump = enable;
+        isHit = false;
     }
 
     protected virtual void HandleAnimation() {
@@ -160,8 +199,10 @@ public class Entity : MonoBehaviour {
     }
 
     private void TryToJump() {
-        if (isGrounded && canJump)
+        if (isGrounded && canJump) {
+            rb.gravityScale = 2.5f;
             rb.linearVelocity = new Vector2(rb.linearVelocityX, jumpForce);
+        }
     }
 
     protected virtual void HandleAttack() {
