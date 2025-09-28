@@ -12,6 +12,7 @@ public class Enemy : Entity {
     }
 
     protected override void Update() {
+        if (isDie) return;
         HandleCollision();
         HandleAnimation();
         HandleMovement();

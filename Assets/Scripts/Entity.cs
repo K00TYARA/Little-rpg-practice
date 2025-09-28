@@ -21,7 +21,7 @@ public class Entity : MonoBehaviour {
 
     // Die
     private float fadeDuration = 1f;
-    private bool isDie = false;
+    protected bool isDie = false;
 
     [Header("Movement details")]
     [SerializeField] protected float moveSpeed = 4;
@@ -48,6 +48,7 @@ public class Entity : MonoBehaviour {
     }
 
     protected virtual void Update() {
+        if (isDie) return;
         HandleCollision();
 
         HandleInput();
@@ -74,11 +75,18 @@ public class Entity : MonoBehaviour {
 
     protected virtual void Die() {
         animator.SetTrigger("die");
+        canMove = false;
+        canAttack = false;
 
         if (!isDie) {
-            rb.gravityScale = 8;
-            rb.linearVelocity = new Vector2(rb.linearVelocityX, 15);
             isDie = true;
+            rb.gravityScale = 8;
+
+            float knockBackX = -facingDir * 3f;
+            float knockBackY = 15f;
+
+            rb.linearVelocity = new Vector2(knockBackX, knockBackY);
+            
         }
     }
 
