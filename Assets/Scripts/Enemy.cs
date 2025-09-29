@@ -5,7 +5,7 @@ using UnityEngine.Windows;
 
 public class Enemy : Entity {
 
-    [SerializeField] private bool PlayerDetected;
+    private bool PlayerDetected;
     private bool isAttackTriggerAdded = false;
 
     protected override void Awake() {

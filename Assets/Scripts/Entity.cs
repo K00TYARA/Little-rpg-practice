@@ -64,8 +64,12 @@ public class Entity : MonoBehaviour {
     public void DamageTargets() {
         Collider2D[] enemyColliders = Physics2D.OverlapCircleAll(attackPoint.position, attackRadius, whatIsTarget);
 
-        foreach (Collider2D enemy in enemyColliders) {
-            Entity entityTarget = enemy.GetComponent<Entity>();
+        //foreach (Collider2D enemy in enemyColliders) {
+        //    Entity entityTarget = enemy.GetComponent<Entity>();
+        //    entityTarget.TakeDamage();
+        //}
+        if (enemyColliders.Length != 0) {
+            Entity entityTarget = enemyColliders[0].GetComponent<Entity>();
             entityTarget.TakeDamage();
         }
     }

@@ -303,7 +303,6 @@ MonoBehaviour:
   whatIsGround:
     serializedVersion: 2
     m_Bits: 8
-  PlayerDetected: 0
 --- !u!50 &234084921
 Rigidbody2D:
   serializedVersion: 5
@@ -1114,7 +1113,7 @@ MonoBehaviour:
   whatIsTarget:
     serializedVersion: 2
     m_Bits: 64
-  moveSpeed: 5
+  moveSpeed: 7
   jumpForce: 8
   groundCheckDistance: 1.4
   whatIsGround:
