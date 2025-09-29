@@ -13,9 +13,6 @@ public class Entity : MonoBehaviour {
     [Header("Health")]
     [SerializeField] private int maxHealth = 1;
     [SerializeField] private int currentHealth;
-    //[SerializeField] private Material damageMaterial;
-    //[SerializeField] private float damageFeedbackDuration = .2f;
-    //private Coroutine damageFeedbackCoroutine;
 
     [Header("Attack details")]
     [SerializeField] protected float attackRadius;
@@ -41,7 +38,7 @@ public class Entity : MonoBehaviour {
     [Header("Collision check")]
     [SerializeField] private float groundCheckDistance;
     [SerializeField] private LayerMask whatIsGround;
-    [SerializeField] protected bool isGrounded;
+    protected bool isGrounded;
 
     protected virtual void Awake() {
         rb = GetComponent<Rigidbody2D>();
@@ -75,7 +72,6 @@ public class Entity : MonoBehaviour {
 
     private void TakeDamage() {
         currentHealth -= 1;
-        //PlayDamageFeedback();
         isHit = true;
 
         if (currentHealth <= 0)
@@ -83,23 +79,6 @@ public class Entity : MonoBehaviour {
         else
             Hit();
     }
-
-
-    //private void PlayDamageFeedback() {
-    //    if (damageFeedbackCoroutine != null)
-    //        StopCoroutine(damageFeedbackCoroutine);
-    //    StartCoroutine(DamageFeedbackCo());
-    //}
-
-    //private IEnumerator DamageFeedbackCo() {
-    //    Material originalMat = sr.material;
-    //    sr.material = damageMaterial;
-    //    Bounced();
-
-    //    yield return new WaitForSeconds(damageFeedbackDuration);
-
-    //    sr.material = originalMat;
-    //}
 
     protected void Die() {
         animator.SetTrigger("die");

@@ -1,10 +1,12 @@
+using System.Runtime.InteropServices;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Windows;
 
 public class Enemy : Entity {
 
-    private bool PlayerDetected;
+    [SerializeField] private bool PlayerDetected;
+    private bool isAttackTriggerAdded = false;
 
     protected override void Awake() {
         base.Awake();
@@ -21,15 +23,18 @@ public class Enemy : Entity {
     }
 
     protected override void HandleMovement() {
-        if (canMove)
+        if (canMove) {
             rb.linearVelocity = new Vector2(facingDir * moveSpeed, rb.linearVelocityY);
-        else
+        } else {
             rb.linearVelocity = new Vector2(0, rb.linearVelocityY);
+        }
     }
 
     protected override void HandleAttack() {
-        if (PlayerDetected && canAttack)
+        if (PlayerDetected && canAttack && !isAttackTriggerAdded) {
             animator.SetTrigger("attack");
+            isAttackTriggerAdded = true;
+        }
     }
 
     protected override void HandleAnimation() {
@@ -39,6 +44,10 @@ public class Enemy : Entity {
     protected override void HandleCollision() {
         base.HandleCollision();
         PlayerDetected = Physics2D.OverlapCircle(attackPoint.position, attackRadius, whatIsTarget);
+    }
+
+    public void ChangeIsAttackTriggerAdded(bool enable) {
+        isAttackTriggerAdded = enable;
     }
 
 }
