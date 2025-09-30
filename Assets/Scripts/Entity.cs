@@ -30,7 +30,7 @@ public class Entity : MonoBehaviour {
     [SerializeField] protected float jumpForce = 8;
     protected int facingDir = 1;
     private float xInput;
-    private bool facingRight = true;
+    protected bool facingRight = true;
     protected bool canMove = true;
     private bool canJump = true;
     protected bool canAttack = true;
@@ -68,8 +68,14 @@ public class Entity : MonoBehaviour {
         //    Entity entityTarget = enemy.GetComponent<Entity>();
         //    entityTarget.TakeDamage();
         //}
+
+        // Attack only one enemy, even if Colliders more than one
         if (enemyColliders.Length != 0) {
             Entity entityTarget = enemyColliders[0].GetComponent<Entity>();
+            if (entityTarget.transform.position.x > transform.position.x && entityTarget.facingRight == true ||
+                entityTarget.transform.position.x < transform.position.x && entityTarget.facingRight == false) {
+                entityTarget.Flip();
+            }
             entityTarget.TakeDamage();
         }
     }
@@ -193,15 +199,15 @@ public class Entity : MonoBehaviour {
             animator.SetTrigger("attack");
         }
     }
-    protected void HandleFlip() {
-        if (rb.linearVelocityX < 0 && facingRight == true) {
-            Flip();
-        } else if (rb.linearVelocityX > 0 && facingRight == false) {
+
+    protected virtual void HandleFlip() {
+        if (rb.linearVelocityX < 0 && facingRight == true ||
+            rb.linearVelocityX > 0 && facingRight == false) {
             Flip();
         }
     }
 
-    private void Flip() {
+    protected void Flip() {
         transform.Rotate(0, 180, 0);
         facingRight = !facingRight;
         facingDir *= -1;

@@ -16,6 +16,6 @@ public class Entity_AnimationEvents : MonoBehaviour {
     private void EnableMovementAndJump() => entity.EnableMovementAndJump(true);
     private void EntityDie() => entity.DisableAnimationAndDestroyEntity();
     private void PlayerDieStopMove() => entity.PlayerDieStopMove();
-    private void ChangeIsAttackTriggerAdded() => enemy.ChangeIsAttackTriggerAdded(false);
+    private void EnableIsAttacking() => enemy.EnableIsAttacking(false);
 
 }

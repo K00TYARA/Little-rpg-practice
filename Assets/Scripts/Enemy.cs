@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Runtime.InteropServices;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -6,7 +7,7 @@ using UnityEngine.Windows;
 public class Enemy : Entity {
 
     private bool PlayerDetected;
-    private bool isAttackTriggerAdded = false;
+    private bool isAttacking = false;
 
     protected override void Awake() {
         base.Awake();
@@ -30,10 +31,27 @@ public class Enemy : Entity {
         }
     }
 
+    protected override void HandleFlip() {
+        int playerLayer = LayerMask.NameToLayer("Player");
+
+        Transform[] all = Object.FindObjectsByType<Transform>(FindObjectsSortMode.None);
+
+        Transform[] players = all
+            .Where(en => en.gameObject.layer == playerLayer)
+            .ToArray();
+
+        Transform player = players[0];
+
+        if (player.position.x < transform.position.x && facingRight == true && !isAttacking ||
+            player.position.x > transform.position.x && facingRight == false && !isAttacking) {
+            Flip();
+        }
+    }
+
     protected override void HandleAttack() {
-        if (PlayerDetected && canAttack && !isAttackTriggerAdded) {
+        if (PlayerDetected && canAttack && !isAttacking) {
             animator.SetTrigger("attack");
-            isAttackTriggerAdded = true;
+            isAttacking = true;
         }
     }
 
@@ -46,8 +64,8 @@ public class Enemy : Entity {
         PlayerDetected = Physics2D.OverlapCircle(attackPoint.position, attackRadius, whatIsTarget);
     }
 
-    public void ChangeIsAttackTriggerAdded(bool enable) {
-        isAttackTriggerAdded = enable;
+    public void EnableIsAttacking(bool enable) {
+        isAttacking = enable;
     }
 
 }
