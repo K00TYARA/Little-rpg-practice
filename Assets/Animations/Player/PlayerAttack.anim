@@ -101,7 +101,7 @@ AnimationClip:
   m_HasMotionFloatCurves: 0
   m_Events:
   - time: 0
-    functionName: DisableMovementAndJump
+    functionName: DisableMovement
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
@@ -115,7 +115,7 @@ AnimationClip:
     intParameter: 0
     messageOptions: 0
   - time: 0.8333333
-    functionName: EnableMovementAndJump
+    functionName: EnableMovement
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0

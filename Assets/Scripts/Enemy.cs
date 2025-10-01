@@ -6,6 +6,9 @@ using UnityEngine.Windows;
 
 public class Enemy : Entity {
 
+    [Header("Movement details")]
+    [SerializeField] protected float moveSpeed = 4;
+
     private bool PlayerDetected;
     private bool isAttacking = false;
 
@@ -16,10 +19,7 @@ public class Enemy : Entity {
 
     protected override void Update() {
         if (isDie || isHit) return;
-        HandleCollision();
-        HandleAnimation();
-        HandleMovement();
-        HandleFlip();
+        base.Update();
         HandleAttack();
     }
 
@@ -28,6 +28,17 @@ public class Enemy : Entity {
             rb.linearVelocity = new Vector2(facingDir * moveSpeed, rb.linearVelocityY);
         } else {
             rb.linearVelocity = new Vector2(0, rb.linearVelocityY);
+        }
+    }
+
+    protected override void HandleAnimation() {
+        animator.SetFloat("xVelocity", rb.linearVelocityX);
+    }
+
+    protected override void HandleAttack() {
+        if (PlayerDetected && canAttack && !isAttacking) {
+            animator.SetTrigger("attack");
+            isAttacking = true;
         }
     }
 
@@ -48,24 +59,16 @@ public class Enemy : Entity {
         }
     }
 
-    protected override void HandleAttack() {
-        if (PlayerDetected && canAttack && !isAttacking) {
-            animator.SetTrigger("attack");
-            isAttacking = true;
-        }
-    }
-
-    protected override void HandleAnimation() {
-        animator.SetFloat("xVelocity", rb.linearVelocityX);
-    }
-
     protected override void HandleCollision() {
         base.HandleCollision();
         PlayerDetected = Physics2D.OverlapCircle(attackPoint.position, attackRadius, whatIsTarget);
     }
 
-    public void EnableIsAttacking(bool enable) {
-        isAttacking = enable;
+    public override void EnableMovement(bool enable) {
+        if (!canAttack) return;
+        base.EnableMovement(enable);
+        
+        if (enable == true)
+            isAttacking = false;
     }
-
 }

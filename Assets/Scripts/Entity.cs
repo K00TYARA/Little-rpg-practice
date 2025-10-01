@@ -21,24 +21,19 @@ public class Entity : MonoBehaviour {
     protected float currGravityScale;
 
     // Die or Hit
-    private float fadeDuration = 1f;
+    private float fadeDuration = 3f;
     protected bool isDie = false;
     protected bool isHit = false;
-
-    [Header("Movement details")]
-    [SerializeField] protected float moveSpeed = 4;
-    [SerializeField] protected float jumpForce = 8;
-    protected int facingDir = 1;
-    private float xInput;
-    protected bool facingRight = true;
-    protected bool canMove = true;
-    private bool canJump = true;
-    protected bool canAttack = true;
 
     [Header("Collision check")]
     [SerializeField] private float groundCheckDistance;
     [SerializeField] private LayerMask whatIsGround;
     protected bool isGrounded;
+
+    protected int facingDir = 1;
+    protected bool facingRight = true;
+    protected bool canMove = true;
+    protected bool canAttack = true;
 
     protected virtual void Awake() {
         rb = GetComponent<Rigidbody2D>();
@@ -46,38 +41,38 @@ public class Entity : MonoBehaviour {
         sr = GetComponentInChildren<SpriteRenderer>();
         animator = GetComponentInChildren<Animator>();
         currentHealth = maxHealth;
-        isPlayer = true;
         currGravityScale = rb.gravityScale;
     }
 
     protected virtual void Update() {
         if (isDie || isHit) return;
         HandleCollision();
-
-        HandleInput();
         HandleMovement();
-        HandleFlip();
-
         HandleAnimation();
+        HandleFlip();
     }
 
-    public void DamageTargets() {
-        Collider2D[] enemyColliders = Physics2D.OverlapCircleAll(attackPoint.position, attackRadius, whatIsTarget);
+    protected virtual void HandleMovement() { }
 
-        //foreach (Collider2D enemy in enemyColliders) {
-        //    Entity entityTarget = enemy.GetComponent<Entity>();
-        //    entityTarget.TakeDamage();
-        //}
+    protected virtual void HandleAnimation() {
+        animator.SetFloat("yVelocity", rb.linearVelocityY);
+        animator.SetFloat("xVelocity", rb.linearVelocityX);
 
-        // Attack only one enemy, even if Colliders more than one
-        if (enemyColliders.Length != 0) {
-            Entity entityTarget = enemyColliders[0].GetComponent<Entity>();
-            if (entityTarget.transform.position.x > transform.position.x && entityTarget.facingRight == true ||
-                entityTarget.transform.position.x < transform.position.x && entityTarget.facingRight == false) {
-                entityTarget.Flip();
-            }
-            entityTarget.TakeDamage();
+
+        animator.SetBool("isGrounded", isGrounded);
+    }
+
+    protected virtual void HandleFlip() {
+        if (rb.linearVelocityX < 0 && facingRight == true ||
+            rb.linearVelocityX > 0 && facingRight == false) {
+            Flip();
         }
+    }
+
+    protected void Flip() {
+        transform.Rotate(0, 180, 0);
+        facingRight = !facingRight;
+        facingDir *= -1;
     }
 
     private void TakeDamage() {
@@ -103,8 +98,6 @@ public class Entity : MonoBehaviour {
 
     protected void Hit() {
         animator.SetTrigger("hit");
-        canMove = false;
-
         Bounced();
     }
 
@@ -117,10 +110,38 @@ public class Entity : MonoBehaviour {
         rb.linearVelocity = new Vector2(knockBackX, knockBackY);
     }
 
-    public void DisableAnimationAndDestroyEntity() {
+    protected virtual void HandleAttack() {
+        if (isGrounded) {
+            animator.SetTrigger("attack");
+        }
+    }
+
+    public void DamageTargets() {
+
+        Collider2D[] enemyColliders = Physics2D.OverlapCircleAll(attackPoint.position, attackRadius, whatIsTarget);
+
+        // Attack each entity in the same attack radius
+
+        //foreach (Collider2D enemy in enemyColliders) {
+        //    Entity entityTarget = enemy.GetComponent<Entity>();
+        //    entityTarget.TakeDamage();
+        //}
+
+
+        // Attack only one enemy, even if Colliders more than one
+        if (enemyColliders.Length != 0) {
+            Entity entityTarget = enemyColliders[0].GetComponent<Entity>();
+            if (entityTarget.transform.position.x > transform.position.x && entityTarget.facingRight == true ||
+                entityTarget.transform.position.x < transform.position.x && entityTarget.facingRight == false) {
+                entityTarget.Flip();
+            }
+            entityTarget.TakeDamage();
+        }
+    }
+
+    public void EntityDie() {
         animator.enabled = false;
-        if (!isPlayer)
-            StartCoroutine(FadeOut());
+        StartCoroutine(FadeOut());
     }
 
     private IEnumerator FadeOut() {
@@ -137,7 +158,7 @@ public class Entity : MonoBehaviour {
         Destroy(gameObject);
     }
 
-    public void PlayerDieStopMove() {
+    public void PlayerDie() {
         int enemyLayer = LayerMask.NameToLayer("Enemy");
 
         Collider2D[] all = Object.FindObjectsByType<Collider2D>(FindObjectsSortMode.None);
@@ -153,64 +174,12 @@ public class Entity : MonoBehaviour {
         }
     }
 
-    public void EnableMovementAndJump(bool enable) {
+    public virtual void EnableMovement(bool enable) {
         if (!canAttack) return;
         canMove = enable;
-        canJump = enable;
-        isHit = false;
-    }
 
-    protected virtual void HandleAnimation() {
-        animator.SetFloat("yVelocity", rb.linearVelocityY);
-        animator.SetFloat("xVelocity", rb.linearVelocityX);
-
-
-        animator.SetBool("isGrounded", isGrounded);
-    }
-
-    protected virtual void HandleMovement() {
-        if (canMove)
-            rb.linearVelocity = new Vector2(xInput * moveSpeed, rb.linearVelocityY);
-        else
-            rb.linearVelocity = new Vector2(0, rb.linearVelocityY);
-    }
-
-    private void HandleInput() {
-        xInput = Input.GetAxisRaw("Horizontal");
-
-        if (Input.GetKeyDown(KeyCode.Space)) {
-            TryToJump();
-        }
-
-        if (Input.GetKeyDown(KeyCode.Mouse0)) {
-            HandleAttack();
-        }
-    }
-
-    private void TryToJump() {
-        if (isGrounded && canJump) {
-            rb.gravityScale = 2.5f;
-            rb.linearVelocity = new Vector2(rb.linearVelocityX, jumpForce);
-        }
-    }
-
-    protected virtual void HandleAttack() {
-        if (isGrounded) {
-            animator.SetTrigger("attack");
-        }
-    }
-
-    protected virtual void HandleFlip() {
-        if (rb.linearVelocityX < 0 && facingRight == true ||
-            rb.linearVelocityX > 0 && facingRight == false) {
-            Flip();
-        }
-    }
-
-    protected void Flip() {
-        transform.Rotate(0, 180, 0);
-        facingRight = !facingRight;
-        facingDir *= -1;
+        if (enable == true) 
+            isHit = false;
     }
 
     protected virtual void HandleCollision() {
