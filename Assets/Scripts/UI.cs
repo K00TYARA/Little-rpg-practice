@@ -34,7 +34,7 @@ public class UI : MonoBehaviour {
     
     private void Update() {
         if (isTimerActive) {
-            timerText.text = elapsedTime.ToString("F2") + "s";
+            timerText.text = elapsedTime.ToString("F1") + "s";
             elapsedTime += Time.deltaTime;
         }
         

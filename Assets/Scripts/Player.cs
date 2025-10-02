@@ -1,3 +1,5 @@
+//using System;
+using System.Collections;
 using UnityEngine;
 
 
@@ -8,7 +10,13 @@ public class Player : Entity {
     [Header("Movement details")]
     [SerializeField] protected float moveSpeed = 4;
     [SerializeField] protected float jumpForce = 8;
-    
+
+    private bool canDash = true;
+    private bool isDashing = false;
+    [SerializeField] private float dashingPower = 12f;
+    [SerializeField] private float dashingTime = .4f;
+    [SerializeField] private float dashingCooldown = 1f;
+
     protected bool canJump = true;
 
     protected override void Awake() {
@@ -23,14 +31,20 @@ public class Player : Entity {
     }
 
     private void HandleInput() {
-        xInput = Input.GetAxisRaw("Horizontal");
+        if (!isDashing)
+            xInput = Input.GetAxisRaw("Horizontal");
 
         if (Input.GetKeyDown(KeyCode.Space)) {
-            TryToJump();
+            HandleJump();
         }
 
         if (Input.GetKeyDown(KeyCode.Mouse0)) {
             HandleAttack();
+        }
+
+        if (Input.GetKeyDown(KeyCode.LeftShift) && canDash) {
+            animator.SetTrigger("dash");
+            StartCoroutine(HandleDash());
         }
     }
 
@@ -41,11 +55,28 @@ public class Player : Entity {
             rb.linearVelocity = new Vector2(0, rb.linearVelocityY);
     }
 
-    private void TryToJump() {
+    private void HandleJump() {
         if (isGrounded && canJump) {
             rb.gravityScale = 2.5f;
             rb.linearVelocity = new Vector2(rb.linearVelocityX, jumpForce);
         }
+    }
+
+    private IEnumerator HandleDash() {
+        canDash = false;
+        isDashing = true;
+        float originalGravity = rb.gravityScale;
+        rb.gravityScale = 0f;
+
+        xInput = facingDir;
+        rb.linearVelocity = new Vector2(facingDir * dashingPower, 0f);
+        yield return new WaitForSeconds(dashingTime);
+
+        rb.gravityScale = originalGravity;
+        isDashing = false;
+        yield return new WaitForSeconds(dashingCooldown);
+
+        canDash = true;
     }
 
     public override void EnableMovement(bool enable) {
@@ -54,4 +85,7 @@ public class Player : Entity {
         canJump = enable;
     }
 
+    public override void EntityDie() {
+        animator.enabled = false;
+    }
 }

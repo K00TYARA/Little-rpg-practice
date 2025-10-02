@@ -35,6 +35,8 @@ public class Entity : MonoBehaviour {
     protected bool canMove = true;
     protected bool canAttack = true;
 
+    public bool isGameOver = false;
+
     protected virtual void Awake() {
         rb = GetComponent<Rigidbody2D>();
         col = GetComponent<Collider2D>();
@@ -139,7 +141,7 @@ public class Entity : MonoBehaviour {
         }
     }
 
-    public void EntityDie() {
+    public virtual void EntityDie() {
         animator.enabled = false;
         StartCoroutine(FadeOut());
     }
@@ -159,6 +161,7 @@ public class Entity : MonoBehaviour {
     }
 
     public void PlayerDie() {
+        isGameOver = true;
         UI.instance.EnablegameOverUI();
         int enemyLayer = LayerMask.NameToLayer("Enemy");
 
