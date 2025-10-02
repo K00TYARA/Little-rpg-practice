@@ -42,6 +42,11 @@ public class Enemy : Entity {
         }
     }
 
+    protected override void Die() {
+        base.Die();
+        UI.instance.addKillCount();
+    }
+
     protected override void HandleFlip() {
         int playerLayer = LayerMask.NameToLayer("Player");
 

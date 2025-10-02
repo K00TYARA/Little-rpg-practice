@@ -85,7 +85,7 @@ public class Entity : MonoBehaviour {
             Hit();
     }
 
-    protected void Die() {
+    protected virtual void Die() {
         animator.SetTrigger("die");
         canMove = false;
         canAttack = false;
@@ -159,6 +159,7 @@ public class Entity : MonoBehaviour {
     }
 
     public void PlayerDie() {
+        UI.instance.EnablegameOverUI();
         int enemyLayer = LayerMask.NameToLayer("Enemy");
 
         Collider2D[] all = Object.FindObjectsByType<Collider2D>(FindObjectsSortMode.None);
