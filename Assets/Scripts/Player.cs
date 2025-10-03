@@ -92,6 +92,11 @@ public class Player : Entity {
         yield return new WaitForSeconds(dashingCooldown);
     }
 
+    protected override void TakeDamage() {
+        base.TakeDamage();
+        UI.instance.HealthBar.fillAmount = currentHealth / maxHealth;
+    }
+
     public override void EnableMovement(bool enable) {
         if (!canAttack) return;
         base.EnableMovement(enable);

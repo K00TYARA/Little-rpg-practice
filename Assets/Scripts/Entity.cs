@@ -11,8 +11,8 @@ public class Entity : MonoBehaviour {
     protected bool isPlayer;
 
     [Header("Health")]
-    [SerializeField] private int maxHealth = 1;
-    [SerializeField] private int currentHealth;
+    [SerializeField] protected float maxHealth = 1;
+    [SerializeField] protected float currentHealth;
 
     [Header("Attack details")]
     [SerializeField] protected float attackRadius;
@@ -77,7 +77,7 @@ public class Entity : MonoBehaviour {
         facingDir *= -1;
     }
 
-    private void TakeDamage() {
+    protected virtual void TakeDamage() {
         currentHealth -= 1;
         isHit = true;
 
@@ -122,15 +122,6 @@ public class Entity : MonoBehaviour {
 
         Collider2D[] enemyColliders = Physics2D.OverlapCircleAll(attackPoint.position, attackRadius, whatIsTarget);
 
-        // Attack each entity in the same attack radius
-
-        //foreach (Collider2D enemy in enemyColliders) {
-        //    Entity entityTarget = enemy.GetComponent<Entity>();
-        //    entityTarget.TakeDamage();
-        //}
-
-
-        // Attack only one enemy, even if Colliders more than one
         if (enemyColliders.Length != 0) {
             Entity entityTarget = enemyColliders[0].GetComponent<Entity>();
             if (entityTarget.transform.position.x > transform.position.x && entityTarget.facingRight == true ||

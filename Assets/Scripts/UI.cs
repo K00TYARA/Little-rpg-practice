@@ -14,6 +14,7 @@ public class UI : MonoBehaviour {
     [SerializeField] private TextMeshProUGUI killCountText;
     [SerializeField] public TextMeshProUGUI DashSkillTimer;
     [SerializeField] public Image DashSkillImage;
+    [SerializeField] public Image HealthBar;
 
     private int killCount = 0;
     private float elapsedTime = 0f;
