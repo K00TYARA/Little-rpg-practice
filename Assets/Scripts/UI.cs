@@ -1,21 +1,19 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class UI : MonoBehaviour {
 
     public static UI instance;
 
-    //public Texture2D normalCursor;
-    //public Vector2 normalCursorHotSpot;
-
-    //public Texture2D onButtonCursor;
-    //public Vector2 onButtonCursorHotSpot;
-
     [SerializeField] private GameObject gameOverUI;
     [Space]
     [SerializeField] private TextMeshProUGUI timerText;
     [SerializeField] private TextMeshProUGUI killCountText;
+    [SerializeField] public TextMeshProUGUI DashSkillTimer;
+    [SerializeField] public Image DashSkillImage;
 
     private int killCount = 0;
     private float elapsedTime = 0f;
@@ -37,7 +35,6 @@ public class UI : MonoBehaviour {
             timerText.text = elapsedTime.ToString("F1") + "s";
             elapsedTime += Time.deltaTime;
         }
-        
     }
 
     public void RestartLevel() {
@@ -48,12 +45,4 @@ public class UI : MonoBehaviour {
     }
 
     public void addKillCount() => killCountText.text = (++killCount).ToString();
-    
-    //public void OnButtonCursorEnter() {
-    //    Cursor.SetCursor(normalCursor, normalCursorHotSpot, CursorMode.Auto);
-    //}
-
-    //public void OnButtonCursorExit() {
-    //    Cursor.SetCursor(onButtonCursor, onButtonCursorHotSpot, CursorMode.Auto);
-    //}
 }

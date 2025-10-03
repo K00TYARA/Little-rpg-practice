@@ -1,5 +1,6 @@
 //using System;
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 
 
@@ -10,12 +11,14 @@ public class Player : Entity {
     [Header("Movement details")]
     [SerializeField] protected float moveSpeed = 4;
     [SerializeField] protected float jumpForce = 8;
-
-    private bool canDash = true;
-    private bool isDashing = false;
+    [Space]
     [SerializeField] private float dashingPower = 12f;
     [SerializeField] private float dashingTime = .4f;
-    [SerializeField] private float dashingCooldown = 1f;
+    [SerializeField] private float dashingCooldown = 10f;
+    
+    private bool canDash = true;
+    private bool isDashing = false;
+    private float coolDown;
 
     protected bool canJump = true;
 
@@ -28,6 +31,14 @@ public class Player : Entity {
         if (isDie || isHit) return;
         base.Update();
         HandleInput();
+
+        if (coolDown > 0) {
+            UI.instance.DashSkillTimer.text = (coolDown -= Time.deltaTime).ToString("F1");
+        } else {
+            UI.instance.DashSkillTimer.gameObject.SetActive(false);
+            UI.instance.DashSkillImage.color = Color.white;
+            canDash = true;
+        }
     }
 
     private void HandleInput() {
@@ -63,8 +74,12 @@ public class Player : Entity {
     }
 
     private IEnumerator HandleDash() {
+        UI.instance.DashSkillTimer.gameObject.SetActive(true);
+        UI.instance.DashSkillImage.color = new Color(166f/255f, 166f/255f, 166f/255f);
+        coolDown = dashingCooldown;
         canDash = false;
         isDashing = true;
+
         float originalGravity = rb.gravityScale;
         rb.gravityScale = 0f;
 
@@ -75,8 +90,6 @@ public class Player : Entity {
         rb.gravityScale = originalGravity;
         isDashing = false;
         yield return new WaitForSeconds(dashingCooldown);
-
-        canDash = true;
     }
 
     public override void EnableMovement(bool enable) {
