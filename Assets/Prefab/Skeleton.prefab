@@ -59,7 +59,6 @@ MonoBehaviour:
   whatIsGround:
     serializedVersion: 2
     m_Bits: 8
-  isGameOver: 0
   moveSpeed: 2
 --- !u!70 &6735375609944739646
 CapsuleCollider2D:

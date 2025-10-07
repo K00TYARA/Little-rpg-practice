@@ -10,41 +10,35 @@ public class Enemy : Entity {
     [SerializeField] protected float moveSpeed = 4;
 
     private bool PlayerDetected;
-    private bool isAttacking = false;
-
-    protected override void Awake() {
-        base.Awake();
-        isPlayer = false;
-    }
 
     protected override void Update() {
-        if (isDie || isHit) return;
+        HandleAnimation();
+        if (isGameOver) {
+            rb.linearVelocityX = 0;
+            return;
+        }
+
+        if (state == EntityState.Die || state == EntityState.Hit) return;
         base.Update();
         HandleAttack();
     }
 
-    protected override void HandleMovement() {
-        if (canMove) {
+    protected override void Move() {
+        if (IsActionAndMovementAllowed()) {
             rb.linearVelocity = new Vector2(facingDir * moveSpeed, rb.linearVelocityY);
-        } else {
-            rb.linearVelocity = new Vector2(0, rb.linearVelocityY);
+            SetState(EntityState.Move);
         }
     }
 
-    protected override void HandleAnimation() {
-        animator.SetFloat("xVelocity", rb.linearVelocityX);
-    }
-
     protected override void HandleAttack() {
-        if (PlayerDetected && canAttack && !isAttacking) {
-            animator.SetTrigger("attack");
-            isAttacking = true;
+        if (PlayerDetected) {
+            base.HandleAttack();
         }
     }
 
     protected override void Die() {
         base.Die();
-        UI.instance.addKillCount();
+        UI.instance.AddKillCount();
     }
 
     protected override void HandleFlip() {
@@ -58,8 +52,8 @@ public class Enemy : Entity {
 
         Transform player = players[0];
 
-        if (player.position.x < transform.position.x && facingRight == true && !isAttacking ||
-            player.position.x > transform.position.x && facingRight == false && !isAttacking) {
+        if (player.position.x < transform.position.x && facingRight == true && IsActionAndMovementAllowed() ||
+            player.position.x > transform.position.x && facingRight == false && IsActionAndMovementAllowed()) {
             Flip();
         }
     }
@@ -67,13 +61,5 @@ public class Enemy : Entity {
     protected override void HandleCollision() {
         base.HandleCollision();
         PlayerDetected = Physics2D.OverlapCircle(attackPoint.position, attackRadius, whatIsTarget);
-    }
-
-    public override void EnableMovement(bool enable) {
-        if (!canAttack) return;
-        base.EnableMovement(enable);
-        
-        if (enable == true)
-            isAttacking = false;
     }
 }

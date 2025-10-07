@@ -1,4 +1,3 @@
-//using System;
 using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -16,34 +15,29 @@ public class Player : Entity {
     [SerializeField] private float dashingTime = .4f;
     [SerializeField] private float dashingCooldown = 10f;
     
-    private bool canDash = true;
-    private bool isDashing = false;
-    private float coolDown;
-
-    protected bool canJump = true;
-
-    protected override void Awake() {
-        base.Awake();
-        isPlayer = true;
-    }
+    private float dashCooldownRemaining;
+    private bool dashReady = true;
 
     protected override void Update() {
-        if (isDie || isHit) return;
+        if (state == EntityState.Die || state == EntityState.Hit) return;
         base.Update();
-        HandleInput();
 
-        if (coolDown > 0) {
-            UI.instance.DashSkillTimer.text = (coolDown -= Time.deltaTime).ToString("F1");
+        HandleInput();
+        HandleDashSkillVisual();
+    }
+
+    private void HandleDashSkillVisual() {
+        if (dashCooldownRemaining > 0) {
+            UI.instance.DashSkillTimer.text = (dashCooldownRemaining -= Time.deltaTime).ToString("F1");
         } else {
             UI.instance.DashSkillTimer.gameObject.SetActive(false);
             UI.instance.DashSkillImage.color = Color.white;
-            canDash = true;
         }
     }
 
     private void HandleInput() {
-        if (!isDashing)
-            xInput = Input.GetAxisRaw("Horizontal");
+
+        xInput = Input.GetAxisRaw("Horizontal");
 
         if (Input.GetKeyDown(KeyCode.Space)) {
             HandleJump();
@@ -53,54 +47,57 @@ public class Player : Entity {
             HandleAttack();
         }
 
-        if (Input.GetKeyDown(KeyCode.LeftShift) && canDash) {
+        if (Input.GetKeyDown(KeyCode.LeftShift) && IsActionAndMovementAllowed() && dashReady) {
             animator.SetTrigger("dash");
+            SetState(EntityState.Dash);
             StartCoroutine(HandleDash());
         }
     }
 
-    protected override void HandleMovement() {
-        if (canMove)
-            rb.linearVelocity = new Vector2(xInput * moveSpeed, rb.linearVelocityY);
-        else
-            rb.linearVelocity = new Vector2(0, rb.linearVelocityY);
+    protected override void Move() {
+        if (IsActionAndMovementAllowed()) {
+            rb.linearVelocity = new Vector2(xInput != 0 ? xInput * moveSpeed : 0, rb.linearVelocityY);
+            SetState(EntityState.Move);
+        }
     }
 
     private void HandleJump() {
-        if (isGrounded && canJump) {
+        if (isGrounded && IsActionAndMovementAllowed()) {
             rb.gravityScale = 2.5f;
             rb.linearVelocity = new Vector2(rb.linearVelocityX, jumpForce);
+            SetState(EntityState.Jump);
         }
     }
 
     private IEnumerator HandleDash() {
         UI.instance.DashSkillTimer.gameObject.SetActive(true);
         UI.instance.DashSkillImage.color = new Color(166f/255f, 166f/255f, 166f/255f);
-        coolDown = dashingCooldown;
-        canDash = false;
-        isDashing = true;
+        dashCooldownRemaining = dashingCooldown;
 
         float originalGravity = rb.gravityScale;
         rb.gravityScale = 0f;
+        dashReady = false;
 
-        xInput = facingDir;
-        rb.linearVelocity = new Vector2(facingDir * dashingPower, 0f);
+        rb.linearVelocity = new Vector2(facingDir * dashingPower, 0);
         yield return new WaitForSeconds(dashingTime);
 
+        rb.linearVelocity = new Vector2(0, 0);
         rb.gravityScale = originalGravity;
-        isDashing = false;
+        SetState(EntityState.Attack);
         yield return new WaitForSeconds(dashingCooldown);
+
+        dashReady = true;
+    }
+
+    protected override void HandleAnimation() {
+        base.HandleAnimation();
+        animator.SetFloat("yVelocity", rb.linearVelocityY);
+        animator.SetBool("isGrounded", isGrounded);
     }
 
     protected override void TakeDamage() {
         base.TakeDamage();
         UI.instance.HealthBar.fillAmount = currentHealth / maxHealth;
-    }
-
-    public override void EnableMovement(bool enable) {
-        if (!canAttack) return;
-        base.EnableMovement(enable);
-        canJump = enable;
     }
 
     public override void EntityDie() {

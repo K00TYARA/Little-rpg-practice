@@ -25,7 +25,7 @@ public class UI : MonoBehaviour {
         Time.timeScale = 1;
     }
 
-    public void EnablegameOverUI() {
+    public void EnableGameOverUI() {
         Time.timeScale = .6f;
         gameOverUI.SetActive(true);
         isTimerActive = false;
@@ -45,5 +45,5 @@ public class UI : MonoBehaviour {
         isTimerActive = true;
     }
 
-    public void addKillCount() => killCountText.text = (++killCount).ToString();
+    public void AddKillCount() => killCountText.text = (++killCount).ToString();
 }

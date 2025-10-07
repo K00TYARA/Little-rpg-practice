@@ -1,14 +1,15 @@
 using System.Collections;
 using System.Linq;
+using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
+using static Entity;
 
 public class Entity : MonoBehaviour {
 
     protected Rigidbody2D rb;
     protected SpriteRenderer sr;
     protected Animator animator;
-    protected Collider2D col;
-    protected bool isPlayer;
 
     [Header("Health")]
     [SerializeField] protected float maxHealth = 1;
@@ -18,12 +19,6 @@ public class Entity : MonoBehaviour {
     [SerializeField] protected float attackRadius;
     [SerializeField] protected Transform attackPoint;
     [SerializeField] protected LayerMask whatIsTarget;
-    protected float currGravityScale;
-
-    // Die or Hit
-    private float fadeDuration = 3f;
-    protected bool isDie = false;
-    protected bool isHit = false;
 
     [Header("Collision check")]
     [SerializeField] private float groundCheckDistance;
@@ -32,36 +27,52 @@ public class Entity : MonoBehaviour {
 
     protected int facingDir = 1;
     protected bool facingRight = true;
-    protected bool canMove = true;
-    protected bool canAttack = true;
 
-    public bool isGameOver = false;
+    private float enemyFadeDuration = 3f;
+    [HideInInspector] public static bool isGameOver = false;
+
+    public enum EntityState {
+        Idle, 
+        Move,
+        Jump, 
+        Fall, 
+        Attack,
+        Hit,
+        Dash,
+        Die
+    }
+
+    protected EntityState state = EntityState.Idle;
 
     protected virtual void Awake() {
         rb = GetComponent<Rigidbody2D>();
-        col = GetComponent<Collider2D>();
         sr = GetComponentInChildren<SpriteRenderer>();
         animator = GetComponentInChildren<Animator>();
         currentHealth = maxHealth;
-        currGravityScale = rb.gravityScale;
     }
 
     protected virtual void Update() {
-        if (isDie || isHit) return;
+
+        if (isGameOver || state == EntityState.Die || state == EntityState.Hit) return;
+        if (IsActionAndMovementAllowed()) {
+            HandleFlip();
+            Move();
+        }
+
         HandleCollision();
-        HandleMovement();
         HandleAnimation();
-        HandleFlip();
     }
 
-    protected virtual void HandleMovement() { }
+    protected void SetState(EntityState newState) {
+        if (state != newState) {
+            state = newState;
+        }
+    }
+
+    protected virtual void Move() {}
 
     protected virtual void HandleAnimation() {
-        animator.SetFloat("yVelocity", rb.linearVelocityY);
         animator.SetFloat("xVelocity", rb.linearVelocityX);
-
-
-        animator.SetBool("isGrounded", isGrounded);
     }
 
     protected virtual void HandleFlip() {
@@ -79,23 +90,19 @@ public class Entity : MonoBehaviour {
 
     protected virtual void TakeDamage() {
         currentHealth -= 1;
-        isHit = true;
-
-        if (currentHealth <= 0)
+        if (currentHealth <= 0) {
             Die();
-        else
+            SetState(EntityState.Die);
+        } else {
             Hit();
+            SetState(EntityState.Hit);
+        }
     }
+
 
     protected virtual void Die() {
         animator.SetTrigger("die");
-        canMove = false;
-        canAttack = false;
-
-        if (!isDie) {
-            isDie = true;
-            Bounced();
-        }
+        Bounced();
     }
 
     protected void Hit() {
@@ -113,23 +120,26 @@ public class Entity : MonoBehaviour {
     }
 
     protected virtual void HandleAttack() {
-        if (isGrounded) {
+        if (isGrounded && IsActionAndMovementAllowed()) {
             animator.SetTrigger("attack");
+            rb.linearVelocityX = 0;
+            SetState(EntityState.Attack);
         }
     }
 
     public void DamageTargets() {
 
-        Collider2D[] enemyColliders = Physics2D.OverlapCircleAll(attackPoint.position, attackRadius, whatIsTarget);
+        Collider2D entityCollider = Physics2D.OverlapCircle(attackPoint.position, attackRadius, whatIsTarget);
 
-        if (enemyColliders.Length != 0) {
-            Entity entityTarget = enemyColliders[0].GetComponent<Entity>();
+        if (entityCollider != null) {
+            Entity entityTarget = entityCollider.GetComponent<Entity>();
             if (entityTarget.transform.position.x > transform.position.x && entityTarget.facingRight == true ||
                 entityTarget.transform.position.x < transform.position.x && entityTarget.facingRight == false) {
                 entityTarget.Flip();
             }
             entityTarget.TakeDamage();
         }
+
     }
 
     public virtual void EntityDie() {
@@ -141,9 +151,9 @@ public class Entity : MonoBehaviour {
         Color startColor = sr.color;
         float elapsed = 0f;
 
-        while (elapsed < fadeDuration) {
+        while (elapsed < enemyFadeDuration) {
             elapsed += Time.deltaTime;
-            float alpha = Mathf.Lerp(1f, 0f, elapsed / fadeDuration);
+            float alpha = Mathf.Lerp(1f, 0f, elapsed / enemyFadeDuration);
             sr.color = new Color(startColor.r, startColor.g, startColor.b, alpha);
             yield return null;
         }
@@ -153,28 +163,7 @@ public class Entity : MonoBehaviour {
 
     public void PlayerDie() {
         isGameOver = true;
-        UI.instance.EnablegameOverUI();
-        int enemyLayer = LayerMask.NameToLayer("Enemy");
-
-        Collider2D[] all = Object.FindObjectsByType<Collider2D>(FindObjectsSortMode.None);
-
-        Collider2D[] enemies = all
-            .Where(en => en.gameObject.layer == enemyLayer)
-            .ToArray();
-
-        foreach (Collider2D enemy in enemies) {
-            Enemy enemyScript = enemy.GetComponent<Enemy>();
-            enemyScript.canAttack = false;
-            enemyScript.canMove = false;
-        }
-    }
-
-    public virtual void EnableMovement(bool enable) {
-        if (!canAttack) return;
-        canMove = enable;
-
-        if (enable == true) 
-            isHit = false;
+        UI.instance.EnableGameOverUI();
     }
 
     protected virtual void HandleCollision() {
@@ -184,5 +173,21 @@ public class Entity : MonoBehaviour {
     private void OnDrawGizmos() {
         Gizmos.DrawLine(transform.position, transform.position + new Vector3(0, -groundCheckDistance));
         Gizmos.DrawWireSphere(attackPoint.position, attackRadius);
+    }
+
+    public void UpdateState() {
+        if (isGrounded && Mathf.Abs(rb.linearVelocityX) > 0f)
+            SetState(EntityState.Move);
+        else if (isGrounded)
+            SetState(EntityState.Idle);
+        else if (rb.linearVelocityY > 0f)
+            SetState(EntityState.Jump);
+        else if (rb.linearVelocityY < -0f)
+            SetState(EntityState.Fall);
+    }
+
+    protected bool IsActionAndMovementAllowed() {
+        return state != EntityState.Attack && state != EntityState.Dash &&
+               state != EntityState.Die && state != EntityState.Hit;
     }
 }
