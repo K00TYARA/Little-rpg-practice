@@ -43,6 +43,7 @@ public class UI : MonoBehaviour {
         SceneManager.LoadScene(sceneIndex);
         elapsedTime = 0f;
         isTimerActive = true;
+        Entity.isGameOver = false;
     }
 
     public void AddKillCount() => killCountText.text = (++killCount).ToString();

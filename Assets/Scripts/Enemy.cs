@@ -42,18 +42,9 @@ public class Enemy : Entity {
     }
 
     protected override void HandleFlip() {
-        int playerLayer = LayerMask.NameToLayer("Player");
-
-        Transform[] all = Object.FindObjectsByType<Transform>(FindObjectsSortMode.None);
-
-        Transform[] players = all
-            .Where(en => en.gameObject.layer == playerLayer)
-            .ToArray();
-
-        Transform player = players[0];
-
-        if (player.position.x < transform.position.x && facingRight == true && IsActionAndMovementAllowed() ||
-            player.position.x > transform.position.x && facingRight == false && IsActionAndMovementAllowed()) {
+        float playerPositionX = Player.instance.transform.position.x;
+        if (playerPositionX < transform.position.x && facingRight == true && IsActionAndMovementAllowed() ||
+            playerPositionX > transform.position.x && facingRight == false && IsActionAndMovementAllowed()) {
             Flip();
         }
     }

@@ -8,12 +8,7 @@ public class Enemy_Respawner : MonoBehaviour {
     [Space]
     [SerializeField] private float cooldownDecreaseRate = 0.05f;
     [SerializeField] private float cooldownCap = 0.7f;
-    //private Entity entity;
     private float timer;
-
-    private void Awake() {
-        //entity = FindFirstObjectByType<Entity>();
-    }
 
     private void Update() {
         if (Entity.isGameOver) return;

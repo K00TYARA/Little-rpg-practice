@@ -6,6 +6,7 @@ using UnityEngine;
 public class Player : Entity {
 
     private float xInput;
+    public static Player instance;
 
     [Header("Movement details")]
     [SerializeField] protected float moveSpeed = 4;
@@ -17,6 +18,11 @@ public class Player : Entity {
     
     private float dashCooldownRemaining;
     private bool dashReady = true;
+
+    protected override void Awake() {
+        base.Awake();
+        instance = this;
+    }
 
     protected override void Update() {
         if (state == EntityState.Die || state == EntityState.Hit) return;

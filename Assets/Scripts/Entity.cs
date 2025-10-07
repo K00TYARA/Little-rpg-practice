@@ -52,8 +52,8 @@ public class Entity : MonoBehaviour {
     }
 
     protected virtual void Update() {
-
         if (isGameOver || state == EntityState.Die || state == EntityState.Hit) return;
+
         if (IsActionAndMovementAllowed()) {
             HandleFlip();
             Move();
@@ -76,8 +76,8 @@ public class Entity : MonoBehaviour {
     }
 
     protected virtual void HandleFlip() {
-        if (rb.linearVelocityX < 0 && facingRight == true ||
-            rb.linearVelocityX > 0 && facingRight == false) {
+        if (rb.linearVelocityX < 0 && facingRight ||
+            rb.linearVelocityX > 0 && !facingRight) {
             Flip();
         }
     }
@@ -87,18 +87,6 @@ public class Entity : MonoBehaviour {
         facingRight = !facingRight;
         facingDir *= -1;
     }
-
-    protected virtual void TakeDamage() {
-        currentHealth -= 1;
-        if (currentHealth <= 0) {
-            Die();
-            SetState(EntityState.Die);
-        } else {
-            Hit();
-            SetState(EntityState.Hit);
-        }
-    }
-
 
     protected virtual void Die() {
         animator.SetTrigger("die");
@@ -126,20 +114,34 @@ public class Entity : MonoBehaviour {
             SetState(EntityState.Attack);
         }
     }
-
+    
     public void DamageTargets() {
-
         Collider2D entityCollider = Physics2D.OverlapCircle(attackPoint.position, attackRadius, whatIsTarget);
 
         if (entityCollider != null) {
             Entity entityTarget = entityCollider.GetComponent<Entity>();
-            if (entityTarget.transform.position.x > transform.position.x && entityTarget.facingRight == true ||
-                entityTarget.transform.position.x < transform.position.x && entityTarget.facingRight == false) {
+
+            float attackerPosition = gameObject.transform.position.x;
+            float entityTargetPosition = entityTarget.transform.position.x;
+
+            if (entityTargetPosition < attackerPosition && !entityTarget.facingRight ||
+                entityTargetPosition > attackerPosition && entityTarget.facingRight) {
                 entityTarget.Flip();
             }
+
             entityTarget.TakeDamage();
         }
+    }
 
+    protected virtual void TakeDamage() {
+        currentHealth -= 1;
+        if (currentHealth <= 0) {
+            Die();
+            SetState(EntityState.Die);
+        } else {
+            Hit();
+            SetState(EntityState.Hit);
+        }
     }
 
     public virtual void EntityDie() {
