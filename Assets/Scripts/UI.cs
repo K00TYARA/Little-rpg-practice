@@ -25,15 +25,15 @@ public class UI : MonoBehaviour {
         Time.timeScale = 1;
     }
 
+    private void Update() {
+        HandleGameTimer();
+    }
+
     public void EnableGameOverUI() {
         Time.timeScale = .6f;
         gameOverUI.SetActive(true);
         isTimerActive = false;
     } 
-    
-    private void Update() {
-        HandleGameTimer();
-    }
 
     private void HandleGameTimer() {
         if (isTimerActive) {
@@ -65,6 +65,7 @@ public class UI : MonoBehaviour {
         healthBar.fillAmount = currentHealth / maxHealth;
     }
 
+    public void AddKillCount() => killCountText.text = (++killCount).ToString();
     public void RestartLevel() {
         int sceneIndex = SceneManager.GetActiveScene().buildIndex;
         SceneManager.LoadScene(sceneIndex);
@@ -72,6 +73,4 @@ public class UI : MonoBehaviour {
         isTimerActive = true;
         Entity.isGameOver = false;
     }
-
-    public void AddKillCount() => killCountText.text = (++killCount).ToString();
 }

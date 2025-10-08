@@ -1,6 +1,6 @@
 using System.Collections;
 using UnityEngine;
-
+using UnityEngine.InputSystem;
 
 public class Player : Entity {
 
@@ -25,32 +25,27 @@ public class Player : Entity {
     protected override void Update() {
         if (state == EntityState.Die || state == EntityState.Hit) return;
         base.Update();
-
-        HandleInput();
     }
 
-    private void HandleInput() {
+    public void InputMove(InputAction.CallbackContext context) {
+        xInput = context.ReadValue<Vector2>().x;
+    }
 
-        xInput = Input.GetAxisRaw("Horizontal");
+    public void InputJump() {
+        HandleJump();
+    }
 
-        if (Input.GetKeyDown(KeyCode.Space)) {
-            HandleJump();
-        }
+    public void InputAttack() {
+        HandleAttack();
+    }
 
-        if (Input.GetKeyDown(KeyCode.Mouse0)) {
-            HandleAttack();
-        }
-
-        if (Input.GetKeyDown(KeyCode.LeftShift) && IsActionAndMovementAllowed() && dashReady) {
-            animator.SetTrigger("dash");
-            SetState(EntityState.Dash);
-            StartCoroutine(HandleDash());
-        }
+    public void InputDash() {
+        StartCoroutine(HandleDash());
     }
 
     protected override void Move() {
         if (IsActionAndMovementAllowed()) {
-            rb.linearVelocity = new Vector2(xInput != 0 ? xInput * moveSpeed : 0, rb.linearVelocityY);
+            rb.linearVelocity = new Vector2(xInput * moveSpeed, rb.linearVelocityY);
             SetState(EntityState.Move);
         }
     }
@@ -64,20 +59,24 @@ public class Player : Entity {
     }
 
     private IEnumerator HandleDash() {
-        UI.instance.ShowDashCooldown(dashCooldown);
+        if (IsActionAndMovementAllowed() && dashReady) {
+            animator.SetTrigger("dash");
+            SetState(EntityState.Dash);
+            UI.instance.ShowDashCooldown(dashCooldown);
 
-        float originalGravity = rb.gravityScale;
-        rb.gravityScale = 0f;
-        dashReady = false;
+            float originalGravity = rb.gravityScale;
+            rb.gravityScale = 0f;
+            dashReady = false;
 
-        rb.linearVelocity = new Vector2(facingDir * dashPower, 0);
-        yield return new WaitForSeconds(dashTime);
+            rb.linearVelocity = new Vector2(facingDir * dashPower, 0);
+            yield return new WaitForSeconds(dashTime);
 
-        rb.linearVelocity = new Vector2(0, 0);
-        rb.gravityScale = originalGravity;
-        yield return new WaitForSeconds(dashCooldown - dashTime);
+            rb.linearVelocity = new Vector2(0, 0);
+            rb.gravityScale = originalGravity;
+            yield return new WaitForSeconds(dashCooldown - dashTime);
 
-        dashReady = true;
+            dashReady = true;
+        }
     }
 
     protected override void HandleAnimation() {
