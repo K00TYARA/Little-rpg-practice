@@ -25,7 +25,6 @@ public class Entity : MonoBehaviour {
     protected int facingDir = 1;
     protected bool facingRight = true;
 
-    private float enemyFadeDuration = 3f;
     [HideInInspector] public static bool isGameOver = false;
 
     public enum EntityState {
@@ -53,11 +52,15 @@ public class Entity : MonoBehaviour {
 
         if (IsActionAndMovementAllowed()) {
             HandleFlip();
-            Move();
+            HandleMove();
         }
 
         HandleCollision();
         HandleAnimation();
+    }
+
+    protected virtual void HandleAnimation() {
+        animator.SetFloat("xVelocity", rb.linearVelocityX);
     }
 
     protected void SetState(EntityState newState) {
@@ -66,11 +69,7 @@ public class Entity : MonoBehaviour {
         }
     }
 
-    protected virtual void Move() {}
-
-    protected virtual void HandleAnimation() {
-        animator.SetFloat("xVelocity", rb.linearVelocityX);
-    }
+    protected virtual void HandleMove() {}
 
     protected virtual void HandleFlip() {
         if (rb.linearVelocityX < 0 && facingRight ||
@@ -83,25 +82,6 @@ public class Entity : MonoBehaviour {
         transform.Rotate(0, 180, 0);
         facingRight = !facingRight;
         facingDir *= -1;
-    }
-
-    protected virtual void Die() {
-        animator.SetTrigger("die");
-        Bounced();
-    }
-
-    protected void Hit() {
-        animator.SetTrigger("hit");
-        Bounced();
-    }
-
-    private void Bounced() {
-        rb.gravityScale = 8;
-
-        float knockBackX = -facingDir * 3f;
-        float knockBackY = 15f;
-
-        rb.linearVelocity = new Vector2(knockBackX, knockBackY);
     }
 
     protected virtual void HandleAttack() {
@@ -131,38 +111,34 @@ public class Entity : MonoBehaviour {
     }
 
     protected virtual void TakeDamage() {
+        if (state == EntityState.Die) return;
         currentHealth -= 1;
         if (currentHealth <= 0) {
-            Die();
             SetState(EntityState.Die);
+            Die();
         } else {
-            Hit();
             SetState(EntityState.Hit);
+            Hit();
         }
     }
 
-    public virtual void EntityDie() {
-        animator.enabled = false;
-        StartCoroutine(FadeOut());
+    protected void Hit() {
+        animator.SetTrigger("hit");
+        Bounced();
     }
 
-    private IEnumerator FadeOut() {
-        Color startColor = sr.color;
-        float elapsed = 0f;
-
-        while (elapsed < enemyFadeDuration) {
-            elapsed += Time.deltaTime;
-            float alpha = Mathf.Lerp(1f, 0f, elapsed / enemyFadeDuration);
-            sr.color = new Color(startColor.r, startColor.g, startColor.b, alpha);
-            yield return null;
-        }
-
-        Destroy(gameObject);
+    protected virtual void Die() {
+        animator.SetTrigger("die");
+        Bounced();
     }
 
-    public void PlayerDie() {
-        isGameOver = true;
-        UI.instance.EnableGameOverUI();
+    private void Bounced() {
+        rb.gravityScale = 8;
+
+        float knockBackX = -facingDir * 3f;
+        float knockBackY = 15f;
+
+        rb.linearVelocity = new Vector2(knockBackX, knockBackY);
     }
 
     protected virtual void HandleCollision() {
@@ -188,5 +164,9 @@ public class Entity : MonoBehaviour {
     protected bool IsActionAndMovementAllowed() {
         return state != EntityState.Attack && state != EntityState.Dash &&
                state != EntityState.Die && state != EntityState.Hit;
+    }
+
+    public virtual void DisableAnimatorAfterEntityDie() {
+        animator.enabled = false;
     }
 }

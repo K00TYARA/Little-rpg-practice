@@ -27,6 +27,12 @@ public class Player : Entity {
         base.Update();
     }
 
+    protected override void HandleAnimation() {
+        base.HandleAnimation();
+        animator.SetFloat("yVelocity", rb.linearVelocityY);
+        animator.SetBool("isGrounded", isGrounded);
+    }
+
     public void InputMove(InputAction.CallbackContext context) {
         xInput = context.ReadValue<Vector2>().x;
     }
@@ -40,13 +46,17 @@ public class Player : Entity {
     }
 
     public void InputDash() {
-        StartCoroutine(HandleDash());
+        StartCoroutine(Dash());
     }
 
-    protected override void Move() {
+    protected override void HandleMove() {
         if (IsActionAndMovementAllowed()) {
+            if (xInput == 0) {
+                SetState(EntityState.Idle);
+            } else {
+                SetState(EntityState.Move);
+            }
             rb.linearVelocity = new Vector2(xInput * moveSpeed, rb.linearVelocityY);
-            SetState(EntityState.Move);
         }
     }
 
@@ -58,7 +68,7 @@ public class Player : Entity {
         }
     }
 
-    private IEnumerator HandleDash() {
+    private IEnumerator Dash() {
         if (IsActionAndMovementAllowed() && dashReady) {
             animator.SetTrigger("dash");
             SetState(EntityState.Dash);
@@ -79,18 +89,14 @@ public class Player : Entity {
         }
     }
 
-    protected override void HandleAnimation() {
-        base.HandleAnimation();
-        animator.SetFloat("yVelocity", rb.linearVelocityY);
-        animator.SetBool("isGrounded", isGrounded);
-    }
-
     protected override void TakeDamage() {
         base.TakeDamage();
         UI.instance.HandleHealthBarVisual(currentHealth, maxHealth);
     }
 
-    public override void EntityDie() {
-        animator.enabled = false;
+    protected override void Die() {
+        base.Die();
+        isGameOver = true;
+        UI.instance.EnableGameOverUI();
     }
 }

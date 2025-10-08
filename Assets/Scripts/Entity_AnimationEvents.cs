@@ -9,7 +9,6 @@ public class Entity_AnimationEvents : MonoBehaviour {
     }
 
     private void DamageTargets() => entity.DamageTargets();
-    private void EntityDie() => entity.EntityDie();
-    private void PlayerDie() => entity.PlayerDie();
+    private void DisableAnimatorAfterEntityDie() => entity.DisableAnimatorAfterEntityDie();
     private void UpdateState() => entity.UpdateState();
 }

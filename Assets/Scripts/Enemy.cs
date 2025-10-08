@@ -1,9 +1,12 @@
+using System.Collections;
 using UnityEngine;
 
 public class Enemy : Entity {
 
     [Header("Movement details")]
     [SerializeField] protected float moveSpeed = 4;
+
+    private float enemyFadeDuration = 3f;
 
     private bool PlayerDetected;
 
@@ -19,7 +22,7 @@ public class Enemy : Entity {
         HandleAttack();
     }
 
-    protected override void Move() {
+    protected override void HandleMove() {
         if (IsActionAndMovementAllowed()) {
             rb.linearVelocity = new Vector2(facingDir * moveSpeed, rb.linearVelocityY);
             SetState(EntityState.Move);
@@ -35,6 +38,21 @@ public class Enemy : Entity {
     protected override void Die() {
         base.Die();
         UI.instance.AddKillCount();
+        StartCoroutine(FadeOut());
+    }
+
+    private IEnumerator FadeOut() {
+        Color startColor = sr.color;
+        float elapsed = 0f;
+
+        while (elapsed < enemyFadeDuration) {
+            elapsed += Time.deltaTime;
+            float alpha = Mathf.Lerp(1f, 0f, elapsed / enemyFadeDuration);
+            sr.color = new Color(startColor.r, startColor.g, startColor.b, alpha);
+            yield return null;
+        }
+
+        Destroy(gameObject);
     }
 
     protected override void HandleFlip() {
