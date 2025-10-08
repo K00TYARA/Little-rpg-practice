@@ -1,5 +1,4 @@
 using System.Collections;
-using Unity.VisualScripting;
 using UnityEngine;
 
 
@@ -12,11 +11,10 @@ public class Player : Entity {
     [SerializeField] protected float moveSpeed = 4;
     [SerializeField] protected float jumpForce = 8;
     [Space]
-    [SerializeField] private float dashingPower = 12f;
-    [SerializeField] private float dashingTime = .4f;
-    [SerializeField] private float dashingCooldown = 10f;
-    
-    private float dashCooldownRemaining;
+    [SerializeField] private float dashPower = 12f;
+    [SerializeField] private float dashTime = .4f;
+    [SerializeField] private float dashCooldown = 10f;
+
     private bool dashReady = true;
 
     protected override void Awake() {
@@ -29,16 +27,6 @@ public class Player : Entity {
         base.Update();
 
         HandleInput();
-        HandleDashSkillVisual();
-    }
-
-    private void HandleDashSkillVisual() {
-        if (dashCooldownRemaining > 0) {
-            UI.instance.DashSkillTimer.text = (dashCooldownRemaining -= Time.deltaTime).ToString("F1");
-        } else {
-            UI.instance.DashSkillTimer.gameObject.SetActive(false);
-            UI.instance.DashSkillImage.color = Color.white;
-        }
     }
 
     private void HandleInput() {
@@ -76,21 +64,18 @@ public class Player : Entity {
     }
 
     private IEnumerator HandleDash() {
-        UI.instance.DashSkillTimer.gameObject.SetActive(true);
-        UI.instance.DashSkillImage.color = new Color(166f/255f, 166f/255f, 166f/255f);
-        dashCooldownRemaining = dashingCooldown;
+        UI.instance.ShowDashCooldown(dashCooldown);
 
         float originalGravity = rb.gravityScale;
         rb.gravityScale = 0f;
         dashReady = false;
 
-        rb.linearVelocity = new Vector2(facingDir * dashingPower, 0);
-        yield return new WaitForSeconds(dashingTime);
+        rb.linearVelocity = new Vector2(facingDir * dashPower, 0);
+        yield return new WaitForSeconds(dashTime);
 
         rb.linearVelocity = new Vector2(0, 0);
         rb.gravityScale = originalGravity;
-        SetState(EntityState.Attack);
-        yield return new WaitForSeconds(dashingCooldown);
+        yield return new WaitForSeconds(dashCooldown - dashTime);
 
         dashReady = true;
     }
@@ -103,7 +88,7 @@ public class Player : Entity {
 
     protected override void TakeDamage() {
         base.TakeDamage();
-        UI.instance.HealthBar.fillAmount = currentHealth / maxHealth;
+        UI.instance.HandleHealthBarVisual(currentHealth, maxHealth);
     }
 
     public override void EntityDie() {
